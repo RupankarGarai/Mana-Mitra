@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mental Health Chatbot</title>
+    <link rel="stylesheet" href="../static/css/style.css">
+    <style>
+        .logo-container {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 1000;
+        }
+        .logo {
+            width: 85px;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        /* Left Sidebar styling */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 200px;
+            height: 100%;
+            background-color: #f4f4f4;
+            padding: 20px;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        .sidebar h3 {
+            margin-top: 0;
+            font-size: 20px;
+            color: #333;
+            text-align: center;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            text-align: center;
+        }
+        .sidebar ul li {
+            margin: 15px 0;
+            font-size: 18px;
+            color: #555;
+        }
+
+        /* Right Sidebar styling */
+        .right-sidebar {
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 200px;
+            height: 100%;
+            background-color: #e6f7ff;
+            padding: 20px;
+            box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            font-family: Arial, sans-serif;
+        }
+        .right-sidebar h3 {
+            font-size: 20px;
+            color: #333;
+            text-align: center;
+            margin-top: 0;
+        }
+        .right-sidebar p {
+            font-size: 16px;
+            color: #555;
+            text-align: center;
+        }
+
+        .chat-container {
+            margin: 0 220px; /* Adjust for both sidebars */
+            padding: 20px;
+        }
+
+        .chat-message {
+            display: flex;
+            align-items: center;
+            margin: 10px 0;
+        }
+
+        .user-message {
+            justify-content: flex-end;
+        }
+
+        .bot-message {
+            justify-content: flex-start;
+        }
+
+        .user-logo,
+        .bot-logo {
+            width: 15px;
+            height: 15px;
+            border-radius: 50%;
+        }
+
+        .user-logo {
+            margin-left: 10px;
+        }
+
+        .bot-logo {
+            margin-right: 10px;
+        }
+
+        .typing-indicator {
+            display: none;
+            font-style: italic;
+            color: gray;
+        }
+    </style>
+</head>
+<body>
+    <!-- Left Sidebar -->
+    <div class="sidebar">
+        <h3>Names</h3>
+        <ul>
+            <li>Avni</li>
+            <li>Krithika P Rao</li>
+            
+            <li>Kimaya Anand</li>
+            <li>Aneesha Girish</li>
+        </ul>
+    </div>
+
+    <!-- Right Sidebar -->
+    <div class="right-sidebar">
+        <h3>About Mana Mitra</h3>
+        <p style="text-align: center;">
+            Mana Mitra is a mental health chatbot designed to support students with their unique challenges. It offers a safe, confidential space to discuss stress, anxiety, and academic pressures. With resources like guided relaxation techniques, stress-management tips, and practical advice, Mana Mitra empowers students to improve their well-being. As a helpful companion, it promotes resilience and provides balance, aiding students in achieving mental clarity on their academic journey.
+        </p>
+    </div>
+    
+
+    <div class="heading" style="color: blue; font-size: 30px; position: fixed; top: 0; left: 0; width: 100%; text-align: center;  padding: 10px; z-index: 1000;">
+        Mana Mitra
+    </div>
+    
+    <div class="logo-container">
+        <img src="/static/images/logo.png" alt="Logo" class="logo">
+    </div>
+    
+    <div class="chat-container">
+        <div id="chat-box" class="chat-box">
+            <!-- Chat messages will appear here -->
+        </div>
+        <p id="typing-indicator" class="typing-indicator">Bot is typing...</p>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="Type your message...">
+            <button onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <script>
+        // Function to send user message
+        function sendMessage() {
+            let userInput = document.getElementById("user-input").value;
+            if (userInput === "") return;
+
+            // Display user message in chat box
+            const chatBox = document.getElementById("chat-box");
+            chatBox.innerHTML += `
+                <div class="chat-message user-message">
+                    <img src="../static/images/user_logo.png" alt="User" class="user-logo">
+                    <span>${userInput}</span>
+                </div>
+            `;
+
+            // Clear input
+            document.getElementById("user-input").value = ""; 
+
+            // Show typing indicator
+            const typingIndicator = document.getElementById("typing-indicator");
+            typingIndicator.style.display = 'block';
+
+            // Send user input to server (Python) and get the response
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message: userInput })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Simulate typing delay (e.g., 1.5 seconds)
+                setTimeout(() => {
+                    // Hide typing indicator
+                    typingIndicator.style.display = 'none';
+
+                    // Display bot response in chat box
+                    chatBox.innerHTML += `
+                        <div class="chat-message bot-message">
+                            <img src="../static/images/bot_logo.png" alt="Bot" class="bot-logo">
+                            <span>${data.reply}</span>
+                        </div>
+                    `;
+                    chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+                }, 1500); // Adjust the typing delay here (in milliseconds)
+            });
+        }
+    </script>
+</body>
+</html>
